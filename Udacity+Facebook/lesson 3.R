@@ -27,7 +27,7 @@ qplot(x = friend_count, data = pf, binwidth = 5) + scale_x_continuous(limits = c
 # Facet 
 qplot(x = friend_count, data = pf, binwidth = 25) + 
   scale_x_continuous(limits = c(0,1000), breaks = seq(0,1000,50))+
-    facet_wrap(~gender, ncol = 2)
+    facet_wrap(~gender)
 
 # Omit NA Observations    na.omit(pf) would work as well
 qplot(x = friend_count, data = subset(pf,!is.na(gender)), binwidth = 25) + 
@@ -62,3 +62,23 @@ install.packages('gridExtra')
 library(gridExtra)
 grid.arrange(logscale, countscale, ncol = 2)
 
+## Frequency Polygons
+qplot(x = www_likes,
+      data = subset(pf,!is.na(gender)),geom='freqpoly', color=gender ) + 
+  scale_x_continuous()+scale_x_log10()
+
+## Who has more in total
+by(pf$www_likes, pf$gender, sum)
+
+# Box plots
+qplot(x=gender, y = friend_count, data = subset(pf, !is.na(gender)),
+      geom = 'boxplot') + scale_y_log10()
+
+by(pf$friendships_initiated, pf$gender, summary)
+
+## Getting Logical
+mobile_check_in <- NA
+pf$mobile_check_in <- ifelse(pf$mobile_likes > 0,1,0)
+pf$mobile_check_in <- factor(pf$mobile_check_in)
+summary(pf$mobile_check_in)
+63947/length(pf$mobile_check_in)
