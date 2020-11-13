@@ -56,3 +56,26 @@ ggplot(aes(x=likes_received, y = www_likes_received), data=pf ) +
 
 cor.test(pf$likes_received, pf$www_likes_received, method='pearson')
 
+# Create a new variable, 'age_with_months', in the 'pf' data frame.
+# Be sure to save the variable in the data frame rather than creating
+# a separate, stand-alone variable. You will need to use the variables
+# 'age' and 'dob_month' to create the variable 'age_with_months'.
+pf$age_with_months <- pf$age + (12-pf$dob_month)/12
+
+# Create a new data frame called
+# pf.fc_by_age_months that contains
+# the mean friend count, the median friend
+# count, and the number of users in each
+# group of age_with_months. The rows of the
+# data framed should be arranged in increasing
+# order by the age_with_months variable.
+age_with_months_groups <- group_by(pf, age_with_months)
+pf.fc_by_age_months <- summarise(age_with_months_groups,
+                                 friend_count_mean = mean(friend_count),
+                                 friend_count_median = median(friend_count),
+                                 n=n())
+pf.fc_by_age_months <- arrange(pf.fc_by_age_months, age_with_months)
+
+#line plot
+ggplot(aes(x = age_with_months, y = friend_count_mean), data = subset(pf.fc_by_age_months, age_with_months<71))+geom_line()
+       
