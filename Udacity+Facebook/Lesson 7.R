@@ -1,6 +1,7 @@
 setwd('D:/Project/R Scripts/Exploratory-Data-Analysis/Udacity+Facebook')
 library(ggplot2)
 library(dplyr)
+library(tidyverse)
 pf <- read.csv('pseudo_facebook.tsv', sep = '\t')
 
 # Chaining function
@@ -75,3 +76,12 @@ qplot(data=yo, x=all.purchases, binwidth = 1)
 #Creat better vis
 ggplot(aes(x=time,y=price),data=yo)+
   geom_jitter(alpha=1/4, shape=21)
+
+# Create seperate linegraph for households
+set.seed(42)
+sample.ids <- sample(yo$id, 16)
+ggplot(aes(x=time, y=price), data=subset(yo,id %in% sample.ids)) +
+         facet_wrap(~id)+
+         geom_line()+
+         geom_point(aes(size=all.purchases), pch = 1)
+       
