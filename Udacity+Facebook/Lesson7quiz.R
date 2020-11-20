@@ -40,16 +40,29 @@ pf$prop_initiated <- pf$friendships_initiated/pf$friend_count
 # year_joined.bucket.
 pf$year_joined <- floor(2014-pf$tenure/365)
 pf$year_joined.bucket <- cut(pf$year_joined, breaks = c(2004,2009,2011,2012,2014))
-ggplot(aes(x = tenure, y = prop_initiated),
+ggplot(aes(x = 25*round(tenure/25), y = prop_initiated),
        data = subset(pf, !is.na(prop_initiated), !is.na(tenure))) +
-  geom_line(aes(color = year_joined.bucket), stat = 'summary', fun.y = median)
+  geom_line(aes(color = year_joined.bucket), stat = 'summary', fun.y = median)+
+  geom_smooth()
 
+# Smooth the last plot you created of
+# of prop_initiated vs tenure colored by
+# year_joined.bucket. You can bin together ranges
+# of tenure or add a smoother to the plot.
+mean(pf$prop_initiated[pf$year_joined.bucket=='(2012,2014]'],na.rm=TRUE)
+mean(pf$prop_initiated[pf$year_joined.bucket=='(2003,2009]'],na.rm=TRUE)
+mean(pf$prop_initiated[pf$year_joined.bucket=='(2009,2011]'],na.rm=TRUE)
+mean(pf$prop_initiated[pf$year_joined.bucket=='(2011,2012]'],na.rm=TRUE)
 
-
-
-
-
-
+# Create a scatter plot of the price/carat ratio
+# of diamonds. The variable x should be
+# assigned to cut. The points should be colored
+# by diamond color, and the plot should be
+# faceted by clarity.
+cost <- diamonds$price/diamonds$carat
+ggplot(data=diamonds, aes(x=cut, y=cost,color=color)) +
+  facet_wrap(~clarity) +
+  geom_point(position=position_jitter(), alpha=0.80)
 
 
 
