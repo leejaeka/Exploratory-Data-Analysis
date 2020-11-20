@@ -1,0 +1,8 @@
+install.packages("Rfacebook")
+install.packages("Rook")
+library(Rfacebook)
+library(Rook)
+token <- 'EAAG25hwMruwBAGCT4s9NQ5dB0NkEVWvLU5wl8Xh9XXDr7vVeZBX7izrkePZANaM4EFX9eGp7ItgGbFUcPWknofsxrMtdBbQ2xhCxdo85Uk4K83WtDzSsRuNhatL3l5HOsHZCbOGZCAZAagIBSddaiQHDaSPNY2Tri4JYyHFvPtSKUWytHQ8mGEt1kxK0SpEXsBPxCNAMBEenX7xisKFEbepmCCAEuZCA6pg9giwZC8Q3AZDZD'
+me <- getUsers("me", token = 'EAAG25hwMruwBAGCT4s9NQ5dB0NkEVWvLU5wl8Xh9XXDr7vVeZBX7izrkePZANaM4EFX9eGp7ItgGbFUcPWknofsxrMtdBbQ2xhCxdo85Uk4K83WtDzSsRuNhatL3l5HOsHZCbOGZCAZAagIBSddaiQHDaSPNY2Tri4JYyHFvPtSKUWytHQ8mGEt1kxK0SpEXsBPxCNAMBEenX7xisKFEbepmCCAEuZCA6pg9giwZC8Q3AZDZD')
+me$birthday
+getFriends(token, simplify=FALSE)
