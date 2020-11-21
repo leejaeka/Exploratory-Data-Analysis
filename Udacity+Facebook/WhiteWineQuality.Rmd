@@ -23,6 +23,18 @@ wine_subset <- wine[, c(2:13)]
 names(wine_subset)
 ggpairs(wine_subset[sample.int(nrow(wine_subset), 1000), ])
 ```
+```{r}
+summary(wine)
+```
+I don't know anything about wines nor chemistry. So I did some research.
+1. fixed, volatile and citric acid are just different types of acid
+2. pH is range of [3,4]. Higher the value, more ripe
+3. Total sulfur dioxide is portion of surfur dioxide that is free in wine plus some other chemicals or sugar
+4. 
+
+```{r}
+ggplot(data=wine, x=density, y=alcohol)+geom_bar()
+```
 
 
 
