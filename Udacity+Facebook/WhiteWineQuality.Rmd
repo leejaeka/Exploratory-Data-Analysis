@@ -1,61 +1,205 @@
 ---
 title: "White Wine Quality"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
+========================================================
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that you end up using
+# in your analysis in this code chunk.
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
-
-```{r}
-setwd('D:/Project/R Scripts/Exploratory-Data-Analysis/Udacity+Facebook')
+# Notice that the parameter "echo" was set to FALSE for this code chunk.
+# This prevents the code from displaying in the knitted HTML output.
+# You should set echo=FALSE for all code chunks in your file.
 #install.packages('GGally')
 library(ggplot2)
 library(dplyr)
 library(tidyverse)
 library(GGally)
-```
-```{r}
-wine <- read.csv('wineQualityWhites.csv')
-
+library(ggplot2)
 set.seed(42)
-wine_subset <- wine[, c(2:13)]
+```
+
+```{r echo=FALSE, Load_the_Data}
+# Load the Data
+setwd('D:/Project/R Scripts/Exploratory-Data-Analysis/Udacity+Facebook')
+wine <- read.csv('wineQualityWhites.csv')
+```
+The dataset consits of 13variables, with 4898 observations.
+# Univariate Plots Section
+```{r echo=FALSE, Univariate_Plots}
+summary(wine)
+ggplot(data=wine, 
+       aes(x=quality))+ geom_bar(color='black' ,fill='pink') + scale_y_log10()
+```
+Note that we are most interested in 'quality' column as we want to see which variables help us find the best wine.
+
+It looks like Majority of our wines are quality between '5' to '7'. There are less than 10 of the highest quality '9' and dataset is normally distributed.
+Let's look at some boring bar plots of rest of the variables.
+```{r echo=FALSE, warning=FALSE}
+#Density
+ggplot(data=subset(wine,density< quantile(density, 1)), 
+       aes(x=density))+ geom_histogram(binwidth=0.0005, color='black' ,fill='pink')
+#Alcohol
+ggplot(data=wine, aes(x=alcohol))+ geom_histogram(binwidth=0.1, color='black' ,fill='pink')
+#Sugar
+ggplot(data=wine, aes(x=residual.sugar))+ 
+  geom_histogram(binwidth=0.05, color='black' ,fill='pink') + scale_x_log10()
+#Fixed * Volatile * Citric acid
+wine$total_acid <- wine$fixed.acidity*wine$volatile.acidity*wine$citric.acid
+ggplot(data=subset(wine, !is.na(total_acid)), aes(x=total_acid))+ 
+  geom_histogram(binwidth=0.05,color='black' ,fill='pink') + scale_x_log10()
+#Free sulfur dioxide rate
+wine$free_rate <- wine$free.sulfur.dioxide/wine$total.sulfur.dioxide
+ggplot(data=wine, aes(x=free_rate))+ geom_histogram(color='black' ,fill='pink')
+#pH 
+ggplot(data=wine, aes(x=pH))+ geom_histogram(binwidth=0.05,color='black' ,fill='pink')
+#Residual
+ggplot(data=wine, aes(x=chlorides))+ geom_histogram(binwidth=0.03,color='black' ,fill='pink') +
+  scale_x_log10()
+```
+Boring as expected.
+# Univariate Analysis
+### What is the structure of your dataset?
+There are 4898 different wines with 10 features. They are all continuos variables except "quality"" which is ordered factor variable. 
+### What is/are the main feature(s) of interest in your dataset?
+Quality. We want to answer what combination of ingredients make the best wine?
+### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+Since the dataset consists of real experts (human in the end), I think majority of their points comes from sweetness(sugar), acidity, alcohol and density.
+### Did you create any new variables from existing variables in the dataset?
+I've created total_acidity variable which doesn't make any sense but simplifies fixed, volatile and citric acids and free_rate which is proportion of free sulfur dioxide in total sulfur dioxide. Both for small dimension reduction purpose.
+### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
+Sugar had two main peaks at around 2 and 10. I guess majority of winemakers like to make their wine either sweet or not sweet. Most datas were skewed due to very few extreme outliers. 
+
+#Bivariate Plots Section
+```{r echo=FALSE, Bivariate_Plots}
+wine_subset <- wine[, c(5,6,9,10,11,12,13,14,15)]
 names(wine_subset)
 ggpairs(wine_subset[sample.int(nrow(wine_subset), 1000), ])
 ```
-```{r}
-summary(wine)
+We can see that most scatterplots tends to form clusters with some outliers. Most interesting findings are...
+1. Quality is most correlated with alcohol, density, chlorides
+2. Alcohol is highly correlated with chloride(-0.82) and sugar(-0.46)
+3. Sugar, alcohol and density are highly correlated 
+Let's have a closer look.
+```{r echo=FALSE, warning=FALSE}
+#BOX PLOTS
+# ALCOHOL
+ggplot(data=wine, 
+       aes(y=alcohol)) +
+  geom_boxplot() + 
+  facet_wrap((~quality.bucket)) +
+  scale_y_log10()
+# DENSITY
+ggplot(data=subset(wine,density<quantile(density,0.99)), 
+       aes(y=density)) +
+  geom_boxplot() + 
+  facet_wrap((~quality.bucket)) +
+  scale_y_log10()
+#CHLORIDES
+ggplot(data=subset(wine, chlorides < quantile(chlorides, 0.95) & 
+                     chlorides > quantile(chlorides, 0.01)), 
+       aes(y=chlorides)) +
+  geom_boxplot() + 
+  facet_wrap((~quality.bucket)) +
+  scale_y_log10()
 ```
-I don't know anything about wines nor chemistry. So I did some research.
-1. fixed, volatile and citric acid are just different types of acid
-2. pH is range of [3,4]. Higher the value, more ripe
-3. Total sulfur dioxide is portion of surfur dioxide that is free in wine plus some other chemicals or sugar
-4. 
-
-```{r}
-ggplot(data=wine, x=density, y=alcohol)+geom_bar()
+So clearly, high quality wines tend to have higher alcohol, lower density and lower chlorides than other qualities of wine. 
+```{r echo=FALSE, warning=FALSE}
+wine.wineByQuality <- wine %>%
+  group_by(quality) %>%
+  summarise(med_alcohol=median(as.numeric(alcohol)),
+                           med_desity=median(as.numeric(density)),
+                           med_chloride=median(as.numeric(chlorides)),
+                           n=n()) %>%
+  ungroup() %>%
+  arrange(quality)
+wine.wineByQuality
 ```
 
+# Multivariate Plots Section
+
+```{r echo=FALSE, Multivariate_Plots}
+#Let's bucket the qualities  
+# High [8,9] Med [5,6,7] Low [3,4]
+wine$quality.bucket <- cut(wine$quality, breaks=c(2,4,7,9))
+levels(wine$quality.bucket)
+levels(wine$quality.bucket) <- c("Low Quality", "Medium Quality", "High Quality")
+ggplot(data=subset(wine,density < quantile(density,0.99)), 
+      aes(x=(alcohol), y=density, color=residual.sugar)) +
+   scale_y_log10(limits=c(0.987, 1.001)) +
+  facet_wrap(~quality.bucket) +
+  geom_point(alpha = 0.8, shape=3,size = 1) +
+  scale_color_gradient(low="blue", high="pink")
+```
+There's a lot going on here. First we can easily confirm that indeed density, alcohol and sugar closely related. 
+1. Higher sugar levels cover upper right region while lower sugar level covers lower left region. This means higher density and alcohol, higher the sugar level and vice versa. 
+2. Alcohol and density are highly correlated. I suspect this is because alcohol is main source of reducing density since every other ingredients are likely to increase density. 
+3. High quality wines have a cluster at the higher alcohol and lower density quadrant. In contrast, low quality wines have a cluster located further towards 1st and 3rd quadrants. Medium quality wines covers both area. 
+4. No wines seem to exist lowest alcohol and lowest density region.
+# Multivariate Analysis
+
+------
+```{r echo=FALSE, warning=FALSE, RandomForestClassifier}
+model <- lm(quality ~ density + alcohol + chlorides, data = wine)
+summary(model)
+```
+Of course this is just a textbook solution. It is terrible and very time consuming to try different variable combinations. Lets use random forest instead.
+```{r echo=FALSE, warning=FALSE}
+#install.packages('randomForest')
+library(randomForest)
+#install.packages('caret')
+library(caret)
+na.omit(wine_subset)
+wine_subset_subset <- wine[,c(2,3,4,5,6,7,8,9,10,11,12,13,14,15)]
+preproc2 <- preProcess(wine_subset_subset[,c(1:11,13:14)],method=c("range"))
+norm2 <- predict(preproc2, wine_subset_subset[,c(1:11,13:14)])
+norm2$quality <- wine_subset_subset$quality
+## 75% of the sample size
+smp_size <- floor(0.8 * nrow(norm2))
+
+## set the seed to make your partition reproducible
+set.seed(42)
 
 
+train_ind <- sample(seq_len(nrow(norm2)), size=nrow(norm2))
+train <- norm2[train_ind, ]
+test <- norm2[-train_ind, ]
+rf_classifier= randomForest(quality~., data=train, ntree=200, mtry=2, importance=TRUE)
+rf_classifier
+```
+Oh well it's still terrible. 
+```{r echo=FALSE, warning=FALSE}
+varImpPlot(rf_classifier)
+```
+# Final Plots and Summary
+
+### Plot One
+```{r echo=FALSE, Plot_One}
+
+```
+
+### Description One
 
 
+### Plot Two
+```{r echo=FALSE, Plot_Two}
+
+```
+
+### Description Two
 
 
+### Plot Three
+```{r echo=FALSE, Plot_Three}
 
+```
 
+### Description Three
 
+------
 
+# Reflection
 
-
-
-
-
-
-
-
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
-
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
-
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
