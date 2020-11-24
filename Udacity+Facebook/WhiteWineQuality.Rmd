@@ -1,8 +1,6 @@
 ---
 title: "White Wine Quality by Jaekang Lee"
-output:
-  html_document:
-    df_print: paged
+output: md_document
 ---
 ========================================================
 
