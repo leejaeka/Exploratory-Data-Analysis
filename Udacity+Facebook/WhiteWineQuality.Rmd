@@ -1,6 +1,7 @@
 ---
 title: "White Wine Quality by Jaekang Lee"
-output: md_document
+output:
+  word_document: default
 ---
 ========================================================
 
